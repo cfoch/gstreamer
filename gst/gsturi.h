@@ -151,6 +151,19 @@ gboolean              gst_uri_handler_set_uri       (GstURIHandler * handler,
                                                      const gchar   * uri,
                                                      GError       ** error);
 
+/* MultiFile URI */
+#define GST_MULTI_FILE_URI_PROTOCOL "multifile"
+
+typedef struct GstMultiFileURI
+{
+  gchar *location;
+  gint start;
+  gint end;
+  gint fps_n, fps_d;
+} GstMultiFileURI;
+
+GstMultiFileURI * gst_multi_file_uri_new (const gchar * uri);
+
 G_END_DECLS
 
 #endif /* __GST_URI_H__ */

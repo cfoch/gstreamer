@@ -891,3 +891,69 @@ beach:
   GST_DEBUG ("'%s' -> '%s'", filename, uri);
   return uri;
 }
+
+/**
+  * gst_multi_file_uri_new: (skip)
+  *
+  * Reads start/stop index and location from a multifile uri.
+  *
+  */
+GstMultiFileURI *
+gst_multi_file_uri_new (const gchar * uri)
+{
+  GstMultiFileURI *uri_data;
+  gchar **tokens1, **tokens2;
+  gchar *prefix, *uri_params;
+
+  uri_data = malloc (sizeof (GstMultiFileURI));
+  prefix = g_strconcat (GST_MULTI_FILE_URI_PROTOCOL, "://", NULL);
+
+  tokens1 = g_strsplit (uri, prefix, 0);
+
+  uri_params = tokens1[1];
+  tokens2 = g_strsplit (uri_params, "?", 0);
+
+  uri_data->location = g_strdup (tokens2[0]);
+  uri_data->fps_n = -1;
+  uri_data->fps_d = -1;
+
+  if (tokens2[1]) {
+    gchar **param_values;
+    gchar **param_value;
+    const gchar *param;
+    const gchar *value;
+    gint i;
+
+    param_values = g_strsplit (tokens2[1], "&", 0);
+    i = 0;
+
+    while (param_values[i]) {
+      param_value = g_strsplit (param_values[i], "=", 0);
+
+      param = param_value[0];
+      value = param_value[1];
+
+      if (g_strcmp0 (param, "start") == 0) {
+        uri_data->start = atoi (value);
+      } else if (g_strcmp0 (param, "end") == 0) {
+        uri_data->end = atoi (value);
+      } else if (g_strcmp0 (param, "framerate") == 0) {
+        gchar **tokens;
+
+        tokens = g_strsplit (value, "/", 0);
+        uri_data->fps_n = atoi (tokens[0]);
+        uri_data->fps_d = atoi (tokens[1]);
+
+        g_strfreev (tokens);
+      }
+      i++;
+      g_strfreev (param_value);
+    }
+    g_strfreev (param_values);
+  }
+
+  g_strfreev (tokens1);
+  g_strfreev (tokens2);
+
+  return uri_data;
+}
